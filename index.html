@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 강남구 AI 문제해결 해커톤 타이머</title>
+    <title>행사 진행 타이머</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts & Pretendard -->
@@ -65,11 +65,6 @@
             display: none;
         }
         
-        /* 다크모드 대응 컬러 스킴 적용 (입력란 잘림 완벽 방지) */
-        input#modalTimeInput {
-            color-scheme: dark;
-        }
-
         /* 숫자 입력 스핀버튼 숨김 (발표시간 분 입력) */
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
@@ -127,24 +122,135 @@
         #orderResult .order-name { font-size: 1em; line-height: 1.05; text-align: center; width: 100%; }
         #orderResult .order-tag  { font-size: 0.42em; }
 
+
+        /* ── 상단 제목: 프로젝터 같은 큰 화면에서도 타이머와 비율이 맞도록 화면 폭에 비례 ──
+           --title-scale 은 설정의 "글자 크기 (상단 제목)"이 바꾼다 */
+        #headerTitle {
+            font-size: calc(clamp(1.6rem, 3.5vw, 4.6rem) * var(--title-scale, 1));
+            line-height: 1.15;
+        }
+        #headerEyebrow {
+            font-size: calc(clamp(0.65rem, 0.8vw, 1.05rem) * var(--title-scale, 1));
+        }
+        #headerEyebrowWrap svg {
+            width: calc(1.5rem * var(--title-scale, 1));
+            height: calc(1.5rem * var(--title-scale, 1));
+        }
+
+        /* ── 설정에서 고치는 중인 문구가 화면 어디인지 바로 보여주는 표시 ── */
+        .brand-spot {
+            outline: 2px dashed #22d3ee;
+            outline-offset: 8px;
+            border-radius: 8px;
+            animation: brand-spot-pulse 1.6s ease-in-out infinite;
+        }
+        @keyframes brand-spot-pulse {
+            0%, 100% { outline-color: rgba(34, 211, 238, 0.95); }
+            50%      { outline-color: rgba(34, 211, 238, 0.25); }
+        }
+        /* 비어 있는 문구를 편집할 때 자리만 알려주는 흐린 글씨 */
+        .brand-ghost { opacity: 0.45; font-style: italic; }
+        /* 문구 세트를 한 번에 바꿨을 때 어디가 바뀌었는지 반짝여서 알려줌 */
+        .brand-flash { animation: brand-flash-anim 0.9s ease-out; border-radius: 8px; }
+        @keyframes brand-flash-anim {
+            0%   { background-color: rgba(34, 211, 238, 0.55); box-shadow: 0 0 0 10px rgba(34, 211, 238, 0.18); }
+            100% { background-color: transparent; box-shadow: 0 0 0 10px rgba(34, 211, 238, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .brand-spot, .brand-flash { animation: none; }
+        }
+
+        /* ── 시각/시간 설정 모달의 큰 숫자 조절기 ── */
+        .stepper-btn {
+            width: 4.5rem; height: 1.9rem;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 0.7rem;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(51, 65, 85, 0.9);
+            color: #67e8f9; font-size: 0.8rem;
+            transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+        }
+        .stepper-btn:hover { background: rgba(8, 145, 178, 0.28); border-color: #0891b2; color: #a5f3fc; }
+        .stepper-btn:active { transform: scale(0.94); }
+        .stepper-num {
+            width: 5.4rem; height: 3.7rem;
+            text-align: center;
+            font-size: 2.5rem; line-height: 1;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            color: #ffffff;
+            background: rgba(2, 6, 23, 0.9);
+            border: 2px solid rgba(51, 65, 85, 0.9);
+            border-radius: 0.9rem;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .stepper-num:focus { border-color: #22d3ee; box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.18); }
+
+        .chip {
+            padding: 0.4rem 0.25rem;
+            border-radius: 0.6rem;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(51, 65, 85, 0.85);
+            color: #cbd5e1;
+            font-size: 0.78rem; font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+        }
+        .chip:hover { background: rgba(8, 145, 178, 0.25); border-color: #0e7490; color: #e0f2fe; }
+        .chip:active { transform: scale(0.95); }
+        .chip-on { background: rgba(8, 145, 178, 0.45); border-color: #22d3ee; color: #ecfeff; }
+
+        /* ── 설정 서랍의 시간 한 줄 (누르면 큰 조절기가 열림) ── */
+        .time-row {
+            width: 100%;
+            display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+            padding: 0.65rem 0.8rem;
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(51, 65, 85, 0.75);
+            border-radius: 0.7rem;
+            color: #cbd5e1; font-size: 0.875rem; text-align: left;
+            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+        }
+        .time-row:hover { border-color: #0891b2; background: rgba(8, 145, 178, 0.16); color: #ffffff; }
+        .time-row:active { transform: scale(0.99); }
+        .time-row-value {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-weight: 800; font-size: 0.95rem; color: #22d3ee; white-space: nowrap;
+        }
+
+        /* 문구 세트 고르는 칩 */
+        .preset-chip {
+            padding: 0.55rem 0.6rem;
+            border-radius: 0.65rem;
+            background: rgba(2, 6, 23, 0.7);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+            text-align: left;
+            transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+        }
+        .preset-chip:hover { background: rgba(8, 145, 178, 0.18); border-color: #0891b2; }
+        .preset-chip:active { transform: scale(0.98); }
+        .preset-chip .pc-name { display: block; font-size: 0.78rem; font-weight: 800; color: #e2e8f0; }
+        .preset-chip .pc-desc { display: block; font-size: 0.68rem; color: #64748b; margin-top: 0.1rem; }
     </style>
 </head>
 <body class="relative w-screen h-screen overflow-hidden text-white">
 
     <!-- 1. 배경 레이어 (이미지 배경 vs 벡터 배경 전환) -->
-    <!-- 사용자가 직접 지정하는 배경 이미지(image.png)를 직접 매핑하도록 완전 수정했습니다 -->
+    <!-- 배경 이미지는 기본 image.png, 설정 패널에서 원하는 사진을 넣으면 그 사진으로 바뀝니다 -->
     <div id="backgroundImageBg" class="absolute inset-0 bg-cover bg-center bg-no-repeat z-0 transition-opacity duration-700 hidden" style="background-image: url('image.png');"></div>
     
     <div id="backgroundVectorBg" class="absolute inset-0 vector-bg z-0 transition-opacity duration-700 overflow-hidden">
         
-        <!-- [HACKA THON 글자] 더 선명하게(opacity 상향), 더 높게(pt 조정 및 -translate-y 적용) 변경 완료 -->
+        <!-- 배경 워터마크 글자 (설정 패널에서 위/아래 단어를 직접 입력) -->
         <div class="absolute inset-0 flex flex-col justify-between pt-[8vh] pb-[20vh] pointer-events-none select-none overflow-hidden font-black text-center uppercase leading-none tracking-[-0.04em] italic" style="font-family: 'Pretendard Variable', sans-serif;">
-            <!-- 상단 워터마크 HACKA (투명도를 0.05로 상향하여 선명함 개선, 조금 더 상단으로 이동) -->
-            <div class="text-[25vw] text-white/[0.05] leading-none translate-x-[4vw] -translate-y-[2vh] mix-blend-overlay select-none">HACKA</div>
-            <!-- 하단 워터마크 THON (투명도를 0.05로 상향하여 선명함 개선, 조금 더 상단으로 이동) -->
-            <div class="text-[25vw] text-white/[0.05] leading-none -translate-x-[4vw] -translate-y-[2vh] mix-blend-overlay select-none">THON</div>
+            <div id="watermarkTop" class="text-[25vw] text-white/[0.05] leading-none translate-x-[4vw] -translate-y-[2vh] mix-blend-overlay select-none">EVENT</div>
+            <div id="watermarkBottom" class="text-[25vw] text-white/[0.05] leading-none -translate-x-[4vw] -translate-y-[2vh] mix-blend-overlay select-none">TIMER</div>
         </div>
     </div>
+
+    <!-- 배경 사진 위 글씨 가독성 확보용 덮개 (설정에서 농도 조절) -->
+    <div id="bgDimLayer" class="absolute inset-0 z-0 bg-slate-950 pointer-events-none opacity-0 transition-opacity duration-500"></div>
 
     <!-- 격자 노이즈 텍스처 오버레이 -->
     <div class="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.015)_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none z-1"></div>
@@ -152,17 +258,16 @@
     <!-- 2. 메인 컨텐츠 레이어 -->
     <div class="relative z-10 w-full h-full flex flex-col justify-between items-center p-6 md:p-8">
         
-        <!-- 상단: 해커톤 로고 영역 (밑줄 삭제 및 맨 앞에 2026 접두사 추가 완료) -->
+        <!-- 상단: 행사명 영역 (문구는 설정 패널에서 직접 입력) -->
         <div id="headerLogoArea" class="flex flex-col items-center text-center mt-2 transition-all">
-            <div class="flex flex-col items-center mb-0.5">
+            <div id="headerEyebrowWrap" class="flex flex-col items-center mb-0.5">
                 <svg class="w-6 h-6 text-cyan-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path>
                 </svg>
-                <span class="text-[10px] font-bold tracking-[0.3em] text-cyan-300 mt-0.5 font-mono">LIVE CONTROL</span>
+                <span id="headerEyebrow" class="font-bold tracking-[0.3em] text-cyan-300 mt-0.5 font-mono">LIVE CONTROL</span>
             </div>
-            <!-- 밑줄 제거, 맨 앞 2026 추가 -->
-            <h1 class="text-3xl md:text-5xl font-black tracking-tight text-white drop-shadow-md">
-                2026 강남구 AI 문제 해결 해커톤
+            <h1 id="headerTitle" class="font-black tracking-tight text-white drop-shadow-md max-w-[92vw] break-keep">
+                행사 진행 타이머
             </h1>
         </div>
 
@@ -237,26 +342,22 @@
                 </div>
                 <div class="relative w-full overflow-hidden">
                     <div id="noticeMarquee" class="marquee-content text-violet-100 text-xs md:text-sm font-semibold tracking-wide">
-                        💻 2026 강남구 AI 문제해결 해커톤에 참여하신 여러분을 환영합니다!
+                        🎉 행사에 참여하신 여러분을 환영합니다!
                     </div>
                 </div>
             </div>
 
             <!-- 하단 푸터 -->
             <div id="footerBrandArea" class="flex flex-col items-center gap-1.5 opacity-90 transition-all">
-                <div class="flex items-center gap-6">
-                    <div class="flex items-center gap-1.5 text-white">
-                        <span class="font-extrabold text-sm tracking-widest">GANGNAM</span>
-                        <span class="w-px h-3 bg-gray-500"></span>
-                        <span class="text-[10px] text-gray-300 font-medium">강남구</span>
+                <div id="footerRow" class="flex items-center gap-6">
+                    <div id="footerOrgWrap" class="flex items-center gap-1.5 text-white">
+                        <span id="footerOrgEn" class="font-extrabold text-sm tracking-widest"></span>
+                        <span id="footerOrgDivider" class="w-px h-3 bg-gray-500"></span>
+                        <span id="footerOrgKo" class="text-[10px] text-gray-300 font-medium"></span>
                     </div>
-                    <div class="text-[10px] text-gray-400 font-mono tracking-widest border border-slate-700/60 px-2 py-0.5 rounded">
-                        TMD EDUCATION GROUP
-                    </div>
+                    <div id="footerBadge" class="text-[10px] text-gray-400 font-mono tracking-widest border border-slate-700/60 px-2 py-0.5 rounded"></div>
                 </div>
-                <p class="text-[9px] md:text-xs text-gray-400 tracking-widest font-mono uppercase">
-                    2026 Gangnam-gu AI Problem–Solving Hackathon
-                </p>
+                <p id="footerSubline" class="text-[9px] md:text-xs text-gray-400 tracking-widest font-mono uppercase"></p>
             </div>
         </div>
     </div>
@@ -299,45 +400,40 @@
         <!-- 주요 컨트롤 섹션 -->
         <div class="space-y-6">
             
-            <!-- 개별 마감값 관리 및 안내 (설정 안에서 직접 수정 가능하도록 전면 개편) -->
+            <!-- 시간 설정: 누르면 큰 숫자 조절기가 열린다 -->
             <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-3">
-                <span class="text-xs font-bold text-slate-400 uppercase block tracking-wider">각 프리셋 마감 시간 관리 (직접 수정)</span>
-                
-                <div class="space-y-2.5 text-sm text-slate-300">
-                    <div class="flex justify-between items-center">
-                        <span>오전 대회 목표 시각</span>
-                        <input type="time" id="morningTargetInput" onchange="updatePresetFromDrawer('morning', this.value)" class="bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-2 py-1 text-sm font-mono font-bold text-cyan-400 outline-none w-[110px]">
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span>오후 대회 목표 시각</span>
-                        <input type="time" id="afternoonTargetInput" onchange="updatePresetFromDrawer('afternoon', this.value)" class="bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-lg px-2 py-1 text-sm font-mono font-bold text-indigo-300 outline-none w-[110px]">
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span>결과물 제출 목표 시각</span>
-                        <input type="time" id="submissionTargetInput" onchange="updatePresetFromDrawer('submission', this.value)" class="bg-slate-950 border border-slate-700 focus:border-rose-500 rounded-lg px-2 py-1 text-sm font-mono font-bold text-rose-300 outline-none w-[110px]">
-                    </div>
-                    <div class="flex justify-between items-center border-t border-slate-800 pt-2.5">
-                        <span>🎤 발표 제한시간 (분)</span>
-                        <div class="flex items-center gap-1.5">
-                            <button onclick="adjustPresentationDuration(-1)" class="w-8 h-8 bg-slate-950 hover:bg-slate-800 rounded-lg border border-slate-700 text-sm font-bold">-</button>
-                            <input type="number" id="presentationMinInput" min="1" max="120" onchange="updatePresentationDuration(this.value)" class="bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-lg px-2 py-1 text-sm font-mono font-bold text-emerald-400 outline-none w-[64px] text-center">
-                            <button onclick="adjustPresentationDuration(1)" class="w-8 h-8 bg-slate-950 hover:bg-slate-800 rounded-lg border border-slate-700 text-sm font-bold">+</button>
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span>💬 질의응답 시간 (분)</span>
-                        <div class="flex items-center gap-1.5">
-                            <button onclick="adjustQnaDuration(-1)" class="w-8 h-8 bg-slate-950 hover:bg-slate-800 rounded-lg border border-slate-700 text-sm font-bold">-</button>
-                            <input type="number" id="qnaMinInput" min="1" max="120" onchange="updateQnaDuration(this.value)" class="bg-slate-950 border border-slate-700 focus:border-violet-500 rounded-lg px-2 py-1 text-sm font-mono font-bold text-violet-300 outline-none w-[64px] text-center">
-                            <button onclick="adjustQnaDuration(1)" class="w-8 h-8 bg-slate-950 hover:bg-slate-800 rounded-lg border border-slate-700 text-sm font-bold">+</button>
-                        </div>
+                <span class="text-xs font-bold text-slate-400 uppercase block tracking-wider">시간 설정 (누르면 크게 조절)</span>
+
+                <div class="space-y-2">
+                    <button onclick="openTimeEditor('morning')" class="time-row">
+                        <span>오전 대회 마감</span>
+                        <span class="time-row-value" id="morningTargetValue">12:00 ✎</span>
+                    </button>
+                    <button onclick="openTimeEditor('afternoon')" class="time-row">
+                        <span>오후 대회 마감</span>
+                        <span class="time-row-value" id="afternoonTargetValue">14:50 ✎</span>
+                    </button>
+                    <button onclick="openTimeEditor('submission')" class="time-row">
+                        <span>결과물 제출 마감</span>
+                        <span class="time-row-value" id="submissionTargetValue">15:30 ✎</span>
+                    </button>
+                    <div class="border-t border-slate-800 pt-2 space-y-2">
+                        <button onclick="openTimeEditor('presentation')" class="time-row">
+                            <span>🎤 발표 제한시간</span>
+                            <span class="time-row-value" id="presentationValue">3분 ✎</span>
+                        </button>
+                        <button onclick="openTimeEditor('qna')" class="time-row">
+                            <span>💬 질의응답 시간</span>
+                            <span class="time-row-value" id="qnaValue">2분 ✎</span>
+                        </button>
                     </div>
                 </div>
+
                 <button onclick="resetPresetsToDefault()" class="w-full mt-1 bg-slate-800 hover:bg-rose-900/60 border border-slate-700 hover:border-rose-600/60 text-slate-300 hover:text-rose-200 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     모든 시간 기본값으로 되돌리기
                 </button>
-                <p class="text-[11px] text-slate-500 pt-1">💡 이곳에서 값을 바꾸면 즉시 저장·적용됩니다. 메인 화면 각 탭 아래의 "마감 시각" 버튼으로도 수정할 수 있습니다.</p>
+                <p class="text-[11px] text-slate-500 pt-1">💡 메인 화면의 "마감 시각" 버튼을 눌러도 같은 조절기가 열립니다.</p>
             </div>
 
             <!-- 공지사항 텍스트 관리 -->
@@ -352,17 +448,108 @@
                 </div>
             </div>
 
+            <!-- 화면 문구 직접 편집 (행사마다 바꿔 쓰는 부분) -->
+            <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">화면 문구 직접 편집</span>
+
+                <!-- 준비된 문구 세트 고르기 -->
+                <div>
+                    <span class="text-[11px] text-slate-500 font-medium block mb-1.5">문구 세트 고르기 (고른 뒤 아래에서 고쳐 쓰면 됩니다)</span>
+                    <div id="brandPresetChips" class="grid grid-cols-2 gap-1.5"></div>
+                </div>
+
+                <p class="text-[11px] text-cyan-200 bg-cyan-950/50 border border-cyan-800/50 rounded-lg px-2.5 py-2">👀 아래 칸을 누르면 화면에서 바뀌는 자리에 반짝이는 테두리가 생깁니다.</p>
+
+                <div class="space-y-2.5">
+                    <label class="block">
+                        <span class="text-[11px] text-slate-500 font-medium">상단 작은 라벨</span>
+                        <input id="brandEyebrowInput" type="text" oninput="updateBrandField('eyebrow', this.value)" onfocus="focusBrandTarget('eyebrow')" onblur="blurBrandTarget('eyebrow')" placeholder="예: LIVE CONTROL" class="w-full mt-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors">
+                    </label>
+                    <label class="block">
+                        <span class="text-[11px] text-slate-500 font-medium">상단 큰 제목 (행사명)</span>
+                        <input id="brandTitleInput" type="text" oninput="updateBrandField('title', this.value)" onfocus="focusBrandTarget('title')" onblur="blurBrandTarget('title')" placeholder="예: 2026 금천구 AI 해커톤" class="w-full mt-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors">
+                    </label>
+                    <p class="text-[11px] text-slate-500 -mb-1">배경 워터마크는 배경 스타일이 "벡터 그래픽"일 때 크게 보이는 글씨입니다. 편집하는 동안에는 사진 배경에서도 미리 비쳐 보입니다.</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="block">
+                            <span class="text-[11px] text-slate-500 font-medium">배경 워터마크 (위)</span>
+                            <input id="brandWmTopInput" type="text" oninput="updateBrandField('wmTop', this.value)" onfocus="focusBrandTarget('wmTop')" onblur="blurBrandTarget('wmTop')" placeholder="EVENT" class="w-full mt-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors">
+                        </label>
+                        <label class="block">
+                            <span class="text-[11px] text-slate-500 font-medium">배경 워터마크 (아래)</span>
+                            <input id="brandWmBottomInput" type="text" oninput="updateBrandField('wmBottom', this.value)" onfocus="focusBrandTarget('wmBottom')" onblur="blurBrandTarget('wmBottom')" placeholder="TIMER" class="w-full mt-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors">
+                        </label>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="block">
+                            <span class="text-[11px] text-slate-500 font-medium">하단 기관 (영문)</span>
+                            <input id="brandOrgEnInput" type="text" oninput="updateBrandField('orgEn', this.value)" onfocus="focusBrandTarget('orgEn')" onblur="blurBrandTarget('orgEn')" placeholder="GEUMCHEON" class="w-full mt-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors">
+                        </label>
+                        <label class="block">
+                            <span class="text-[11px] text-slate-500 font-medium">하단 기관 (국문)</span>
+                            <input id="brandOrgKoInput" type="text" oninput="updateBrandField('orgKo', this.value)" onfocus="focusBrandTarget('orgKo')" onblur="blurBrandTarget('orgKo')" placeholder="금천구" class="w-full mt-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors">
+                        </label>
+                    </div>
+                    <label class="block">
+                        <span class="text-[11px] text-slate-500 font-medium">하단 배지 문구</span>
+                        <input id="brandBadgeInput" type="text" oninput="updateBrandField('badge', this.value)" onfocus="focusBrandTarget('badge')" onblur="blurBrandTarget('badge')" placeholder="예: TMD EDUCATION GROUP" class="w-full mt-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors">
+                    </label>
+                    <label class="block">
+                        <span class="text-[11px] text-slate-500 font-medium">하단 영문 한 줄</span>
+                        <input id="brandSublineInput" type="text" oninput="updateBrandField('subline', this.value)" onfocus="focusBrandTarget('subline')" onblur="blurBrandTarget('subline')" placeholder="예: 2026 Geumcheon-gu AI Hackathon" class="w-full mt-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors">
+                    </label>
+                </div>
+
+                <button onclick="resetBrandToDefault()" class="w-full mt-1 bg-slate-800 hover:bg-rose-900/60 border border-slate-700 hover:border-rose-600/60 text-slate-300 hover:text-rose-200 py-2 rounded-lg text-xs font-bold transition-all">문구 기본값으로 되돌리기</button>
+                <p class="text-[11px] text-slate-500 pt-1">💡 입력하는 즉시 화면에 반영되고 저장됩니다. 비워 두면 그 문구는 화면에서 숨겨집니다.</p>
+            </div>
+
             <!-- 디스플레이 및 사운드 환경 설정 -->
             <div class="border-t border-slate-800 pt-5 space-y-4">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">화면 및 시스템 세부 커스텀</h3>
                 
-                <!-- 배경 선택 -->
+                <!-- 배경 선택 및 배경 이미지 삽입 -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-300">배경 스타일</span>
+                        <select id="bgSelect" onchange="changeBackgroundMode(this.value)" class="bg-slate-900 border border-slate-800 rounded px-2.5 py-1 text-sm text-white focus:outline-none">
+                            <option value="image">배경 이미지</option>
+                            <option value="vector">벡터 그래픽</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 space-y-3.5">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <span class="text-sm text-slate-300 block">배경 이미지 파일</span>
+                                <span id="bgFileName" class="text-[11px] text-slate-500 truncate block">기본 이미지 (image.png)</span>
+                            </div>
+                            <div class="flex gap-1.5 shrink-0">
+                                <button onclick="openBgFilePicker()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95">이미지 넣기</button>
+                                <button onclick="resetBackgroundImage()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95">기본</button>
+                            </div>
+                        </div>
+                        <input type="file" id="bgFileInput" accept="image/*" onchange="handleBgUpload(event)" class="hidden">
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-sm text-slate-300">배경 어둡게</span>
+                                <span id="bgDimValue" class="text-xs font-mono font-bold text-cyan-400">0%</span>
+                            </div>
+                            <input type="range" id="bgDimRange" min="0" max="85" step="5" value="0" oninput="updateBgDim(this.value)" class="w-full accent-cyan-500 cursor-pointer">
+                            <p class="text-[11px] text-slate-500 mt-1.5">밝은 사진을 넣었을 때 타이머 글씨가 묻히지 않도록 덮개 농도를 올리세요.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 상단 제목 크기 변경 -->
                 <div class="flex items-center justify-between">
-                    <span class="text-sm text-slate-300">배경 스타일</span>
-                    <select id="bgSelect" onchange="changeBackgroundMode(this.value)" class="bg-slate-900 border border-slate-800 rounded px-2.5 py-1 text-sm text-white focus:outline-none">
-                        <option value="image">업로드 원본 이미지</option>
-                        <option value="vector">초고해상도 벡터 그래픽</option>
-                    </select>
+                    <span class="text-sm text-slate-300">글자 크기 (상단 제목)</span>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="adjustTitleSize(-1)" class="w-8 h-8 bg-slate-900 hover:bg-slate-800 rounded border border-slate-800 text-sm font-bold">-</button>
+                        <span id="titleSizePercentage" class="text-sm font-mono w-12 text-center text-cyan-400">100%</span>
+                        <button onclick="adjustTitleSize(1)" class="w-8 h-8 bg-slate-900 hover:bg-slate-800 rounded border border-slate-800 text-sm font-bold">+</button>
+                    </div>
                 </div>
 
                 <!-- 타이머 폰트 크기 변경 -->
@@ -400,53 +587,73 @@
         </div>
     </div>
 
-    <!-- 5. 간편 마감 시각 변경 모달 팝업 -->
-    <div id="quickTimeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
-        <div class="w-full max-w-md bg-slate-900/95 border border-cyan-500/30 rounded-2xl p-6 shadow-2xl transform scale-95 transition-all duration-300">
-            
+    <!-- 5. 시각 / 시간 설정 모달 (큰 숫자 조절기) -->
+    <div id="quickTimeModal" onclick="handleTimeModalBackdrop(event)" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300 p-4">
+        <div id="quickTimeCard" class="w-full max-w-lg max-h-[94vh] overflow-y-auto bg-slate-900/95 border border-cyan-500/30 rounded-2xl p-4 shadow-2xl transform scale-95 transition-all duration-300">
+
             <!-- 헤더 -->
-            <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
+            <div class="flex justify-between items-center mb-3 pb-2.5 border-b border-slate-800">
                 <h3 id="quickModalTitle" class="text-base font-black text-cyan-400 flex items-center gap-2">
-                    <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    마감 시각 즉시 설정
+                    마감 시각 설정
                 </h3>
-                <button onclick="closeQuickTimeModal()" class="text-slate-400 hover:text-white">
+                <button onclick="closeQuickTimeModal()" class="text-slate-400 hover:text-white transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
-            <!-- 메인 설정 인풋 -->
-            <div class="space-y-4">
-                <div class="flex flex-col items-center justify-center bg-slate-950/70 border border-slate-800 rounded-xl p-4 w-full">
-                    <span class="text-xs text-slate-400 mb-3 font-medium text-center">마감 시간을 입력하거나 아래 간편 단추를 누르세요.</span>
-                    <div class="relative w-full flex justify-center">
-                        <input type="time" id="modalTimeInput" class="bg-slate-900 border-2 border-cyan-600 rounded-xl px-4 py-3 text-center text-white text-2xl md:text-3xl font-black tracking-wider outline-none focus:border-cyan-400 w-full max-w-[340px] min-h-[58px] block">
+            <!-- 큰 숫자 조절기 -->
+            <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5">
+                <div class="flex items-start justify-center gap-3 md:gap-5">
+                    <div id="hourStepper" class="flex flex-col items-center gap-2">
+                        <button type="button" onclick="stepTimeEditor('h', 1)" class="stepper-btn" aria-label="시 늘리기">▲</button>
+                        <input id="timeHourInput" type="text" inputmode="numeric" maxlength="2" oninput="onTimeInputEdit('h', this)" onblur="renderTimeEditor()" class="stepper-num" aria-label="시">
+                        <button type="button" onclick="stepTimeEditor('h', -1)" class="stepper-btn" aria-label="시 줄이기">▼</button>
+                        <span class="text-[11px] text-slate-500 font-bold">시</span>
+                    </div>
+                    <span id="timeColon" class="text-5xl font-black text-slate-500 pt-[2.4rem]">:</span>
+                    <div class="flex flex-col items-center gap-2">
+                        <button type="button" onclick="stepTimeEditor('m', 1)" class="stepper-btn" aria-label="분 늘리기">▲</button>
+                        <input id="timeMinuteInput" type="text" inputmode="numeric" maxlength="3" oninput="onTimeInputEdit('m', this)" onblur="renderTimeEditor()" class="stepper-num" aria-label="분">
+                        <button type="button" onclick="stepTimeEditor('m', -1)" class="stepper-btn" aria-label="분 줄이기">▼</button>
+                        <span id="timeMinuteLabel" class="text-[11px] text-slate-500 font-bold">분</span>
                     </div>
                 </div>
-
-                <!-- 시간 미세 조정 가감 버튼 -->
-                <div class="grid grid-cols-4 gap-2">
-                    <button onclick="adjustModalTime(-10)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 rounded-lg font-bold transition-all">-10분</button>
-                    <button onclick="adjustModalTime(-30)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 rounded-lg font-bold transition-all">-30분</button>
-                    <button onclick="adjustModalTime(10)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 rounded-lg font-bold transition-all">+10분</button>
-                    <button onclick="adjustModalTime(30)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 rounded-lg font-bold transition-all">+30분</button>
-                </div>
-
-                <!-- 빠른 타겟 프리셋 선언 -->
-                <div class="flex gap-2 justify-center py-2">
-                    <button onclick="setModalPreset('12:00')" class="bg-slate-800/60 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-800 text-xs text-slate-300 px-3 py-1.5 rounded-md">12:00 정오</button>
-                    <button onclick="setModalPreset('15:00')" class="bg-slate-800/60 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-800 text-xs text-slate-300 px-3 py-1.5 rounded-md">15:00 마감</button>
-                    <button onclick="setModalPreset('17:00')" class="bg-slate-800/60 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-800 text-xs text-slate-300 px-3 py-1.5 rounded-md">17:00 종료</button>
-                </div>
-
-                <!-- 작동 버튼 -->
-                <div class="flex gap-2 pt-2 border-t border-slate-800/80">
-                    <button onclick="closeQuickTimeModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-xl text-sm font-bold transition-all">취소</button>
-                    <button onclick="saveModalTime()" class="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-xl text-sm font-black tracking-wide shadow-lg shadow-cyan-900/30 transition-all">저장 및 적용</button>
-                </div>
+                <p id="timePreviewText" class="text-center text-xs text-slate-400 mt-2.5 font-medium"></p>
             </div>
+
+            <!-- 분 빠르게 맞추기 -->
+            <div id="minuteQuickRow" class="mt-2.5">
+                <span class="text-[11px] text-slate-500 font-bold block mb-1">분 빠르게 맞추기</span>
+                <div id="minuteChips" class="grid grid-cols-8 gap-1.5"></div>
+            </div>
+
+            <!-- 자주 쓰는 마감 시각 -->
+            <div id="hourPresetRow" class="mt-2.5">
+                <span class="text-[11px] text-slate-500 font-bold block mb-1">자주 쓰는 마감 시각</span>
+                <div id="timePresetChips" class="grid grid-cols-5 gap-1.5"></div>
+            </div>
+
+            <!-- 지금 시각 기준으로 잡기 -->
+            <div id="fromNowRow" class="mt-2.5">
+                <span class="text-[11px] text-slate-500 font-bold block mb-1">지금부터 얼마 뒤로</span>
+                <div id="fromNowChips" class="grid grid-cols-5 gap-1.5"></div>
+            </div>
+
+            <!-- 제한시간(발표·질의응답) 전용 -->
+            <div id="durationQuickRow" class="mt-3 hidden">
+                <span class="text-[11px] text-slate-500 font-bold block mb-1">자주 쓰는 시간</span>
+                <div id="durationChips" class="grid grid-cols-4 gap-1.5"></div>
+            </div>
+
+            <!-- 작동 버튼 -->
+            <div class="flex gap-2 pt-4 mt-4 border-t border-slate-800/80">
+                <button onclick="closeQuickTimeModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95">취소</button>
+                <button onclick="commitTimeEditor()" class="flex-[2] bg-cyan-600 hover:bg-cyan-500 text-white py-2.5 rounded-xl text-sm font-black tracking-wide shadow-lg shadow-cyan-900/30 transition-all active:scale-95">저장 및 적용</button>
+            </div>
+            <p class="text-[11px] text-slate-500 text-center mt-2">↑ ↓ 키로 조절 · Enter 저장 · Esc 취소</p>
 
         </div>
     </div>
@@ -484,7 +691,7 @@
                 <!-- 본문 -->
                 <div class="px-6 overflow-y-auto">
                     <div class="flex gap-2">
-                        <input id="orderNameInput" type="text" onkeydown="handleOrderInputKey(event)" autocomplete="off" placeholder="팀 이름 입력 후 Enter (예: 단대소고 1팀)" class="flex-1 bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm md:text-base text-slate-100 placeholder:text-slate-600 focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition-all" style="color-scheme: dark;">
+                        <input id="orderNameInput" type="text" onkeydown="handleOrderInputKey(event)" autocomplete="off" placeholder="팀 이름 입력 후 Enter (예: 1팀)" class="flex-1 bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm md:text-base text-slate-100 placeholder:text-slate-600 focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition-all" style="color-scheme: dark;">
                         <button onclick="addOrderNameFromInput()" class="bg-white/10 hover:bg-white/15 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shrink-0 border border-white/10">추가</button>
                     </div>
                     <p class="text-[11px] text-slate-500 mt-2 ml-1">Enter 또는 '추가'로 등록 · 쉼표로 여러 개 입력 가능 · 자동 저장</p>
@@ -602,10 +809,143 @@
             return activeCase === 'qna' ? '질의응답' : '발표';
         }
 
+        /* ===== 행사마다 바뀌는 화면 문구(브랜딩) 기본값 =====
+           이 파일 하나로 여러 행사에 돌려쓰기 위해, 눈에 보이는 문구는 전부 설정에서 바꿉니다. */
+        const BRAND_DEFAULTS = {
+            eyebrow: 'LIVE CONTROL',
+            title: '행사 진행 타이머',
+            wmTop: 'EVENT',
+            wmBottom: 'TIMER',
+            orgEn: '',
+            orgKo: '',
+            badge: '',
+            subline: ''
+        };
+        /* 준비된 문구 세트. 고른 뒤 각 칸에서 고쳐 쓰는 것을 전제로 한다. */
+        const BRAND_PRESETS = [
+            {
+                id: 'gangnam',
+                name: '강남구 AI 해커톤',
+                desc: '기존 TMD 버전 문구',
+                data: {
+                    eyebrow: 'LIVE CONTROL',
+                    title: '2026 강남구 AI 문제 해결 해커톤',
+                    wmTop: 'HACKA', wmBottom: 'THON',
+                    orgEn: 'GANGNAM', orgKo: '강남구',
+                    badge: 'TMD EDUCATION GROUP',
+                    subline: '2026 Gangnam-gu AI Problem-Solving Hackathon',
+                    notice: '💻 2026 강남구 AI 문제해결 해커톤에 참여하신 여러분을 환영합니다!'
+                }
+            },
+            {
+                id: 'geumcheon',
+                name: '금천구 AI 해커톤',
+                desc: '지역명만 바꾼 같은 구성',
+                data: {
+                    eyebrow: 'LIVE CONTROL',
+                    title: '2026 금천구 AI 문제 해결 해커톤',
+                    wmTop: 'HACKA', wmBottom: 'THON',
+                    orgEn: 'GEUMCHEON', orgKo: '금천구',
+                    badge: 'TMD EDUCATION GROUP',
+                    subline: '2026 Geumcheon-gu AI Problem-Solving Hackathon',
+                    notice: '💻 2026 금천구 AI 문제해결 해커톤에 참여하신 여러분을 환영합니다!'
+                }
+            },
+            {
+                id: 'hackathon',
+                name: '해커톤 (지역명 없음)',
+                desc: '주최 기관만 넣어 쓰기',
+                data: {
+                    eyebrow: 'LIVE CONTROL',
+                    title: 'AI 문제 해결 해커톤',
+                    wmTop: 'HACKA', wmBottom: 'THON',
+                    orgEn: '', orgKo: '',
+                    badge: 'TMD EDUCATION GROUP',
+                    subline: 'AI Problem-Solving Hackathon',
+                    notice: '💻 해커톤에 참여하신 여러분을 환영합니다!'
+                }
+            },
+            {
+                id: 'contest',
+                name: '경진대회 / 발표회',
+                desc: '발표·심사 진행용',
+                data: {
+                    eyebrow: 'LIVE CONTROL',
+                    title: '2026 학생 발표 경진대회',
+                    wmTop: 'CON', wmBottom: 'TEST',
+                    orgEn: '', orgKo: '',
+                    badge: 'TMD EDUCATION GROUP',
+                    subline: '2026 Student Presentation Contest',
+                    notice: '🎤 발표 순서와 남은 시간을 확인해 주세요!'
+                }
+            },
+            {
+                id: 'camp',
+                name: '캠프 / 연수',
+                desc: '여러 날 진행 일정용',
+                data: {
+                    eyebrow: 'LIVE CONTROL',
+                    title: '2026 AI 진로 캠프',
+                    wmTop: 'AI', wmBottom: 'CAMP',
+                    orgEn: '', orgKo: '',
+                    badge: 'TMD EDUCATION GROUP',
+                    subline: '2026 AI Career Camp',
+                    notice: '🙌 오늘 일정과 남은 시간을 안내합니다.'
+                }
+            },
+            {
+                id: 'plain',
+                name: '문구 없이 타이머만',
+                desc: '화면에 시간만 크게',
+                data: {
+                    eyebrow: '', title: '',
+                    wmTop: '', wmBottom: '',
+                    orgEn: '', orgKo: '', badge: '', subline: ''
+                }
+            }
+        ];
+
+        /* 각 문구가 화면의 어느 요소인지 + 비어 있을 때 자리 안내에 쓸 글씨 */
+        const BRAND_TARGETS = {
+            eyebrow:  { id: 'headerEyebrow',   ghost: '(상단 작은 라벨)' },
+            title:    { id: 'headerTitle',     ghost: '(상단 큰 제목)' },
+            wmTop:    { id: 'watermarkTop',    ghost: '(워터마크 위)' },
+            wmBottom: { id: 'watermarkBottom', ghost: '(워터마크 아래)' },
+            orgEn:    { id: 'footerOrgEn',     ghost: '(기관 영문)' },
+            orgKo:    { id: 'footerOrgKo',     ghost: '(기관 국문)' },
+            badge:    { id: 'footerBadge',     ghost: '(하단 배지)' },
+            subline:  { id: 'footerSubline',   ghost: '(하단 영문 한 줄)' }
+        };
+        let brandFocusKey = null; // 지금 편집 중인 문구 (화면에서 반짝이게 표시)
+
+        let brand = Object.assign({}, BRAND_DEFAULTS);
+
+        // 배경 이미지: 기본은 같은 폴더의 image.png, 사용자가 넣은 사진은 브라우저에 저장
+        const DEFAULT_BG_SRC = 'image.png';
+        const DEFAULT_BG_LABEL = '기본 이미지 (image.png)';
+        let bgImageSrc = DEFAULT_BG_SRC;
+        let bgImageLabel = DEFAULT_BG_LABEL;
+        let bgDim = 0; // 배경 위 검은 덮개 농도(%)
+
+        /* 시각/시간 조절기 상태 */
+        let timeEditorCase = 'morning';       // 지금 편집 중인 항목
+        let timeEditorMode = 'target';        // 'target'(마감 시각) | 'duration'(제한시간)
+        let timeEditorH = 12;
+        let timeEditorM = 0;
+
+        const TIME_CASE_LABEL = {
+            morning: '오전 대회 마감 시각',
+            afternoon: '오후 대회 마감 시각',
+            submission: '결과물 제출 마감 시각',
+            presentation: '발표 제한시간',
+            qna: '질의응답 시간'
+        };
+
         // 기타 옵션들
         let isOverlayVisible = true;
         let soundEnabled = true;
-        let fontSizeScale = 100; // 백분율
+        let fontSizeScale = 100; // 타이머 글자 크기 (백분율)
+        let titleScale = 100;    // 상단 제목 글자 크기 (백분율)
 
         // 로컬스토리지 복구 및 설정 초기화
         function loadSettings() {
@@ -677,19 +1017,35 @@
                 const savedFontSize = safeStorage.getItem('fontSizeScale');
                 if (savedFontSize !== null) fontSizeScale = parseInt(savedFontSize);
 
-                const savedNotice = safeStorage.getItem('noticeText');
-                if (savedNotice) {
-                    const noticeMarquee = document.getElementById('noticeMarquee');
-                    const noticeInput = document.getElementById('noticeInput');
-                    if (noticeMarquee) noticeMarquee.innerText = savedNotice;
-                    if (noticeInput) noticeInput.value = savedNotice;
+                const savedTitleScale = safeStorage.getItem('titleScale');
+                if (savedTitleScale !== null) {
+                    const parsedTitle = parseInt(savedTitleScale);
+                    if (!isNaN(parsedTitle) && parsedTitle >= 60 && parsedTitle <= 200) titleScale = parsedTitle;
                 }
 
+                const savedNotice = safeStorage.getItem('noticeText');
+                const noticeMarquee = document.getElementById('noticeMarquee');
+                const noticeInput = document.getElementById('noticeInput');
+                if (savedNotice) {
+                    if (noticeMarquee) noticeMarquee.innerText = savedNotice;
+                    if (noticeInput) noticeInput.value = savedNotice;
+                } else if (noticeMarquee && noticeInput) {
+                    // 저장된 문구가 없으면 화면에 떠 있는 기본 문구를 입력칸에도 채워 둔다
+                    noticeInput.value = noticeMarquee.innerText.trim();
+                }
+
+                // 화면 문구(브랜딩) 복원
+                loadBrandConfig();
+                applyBrand();
+                syncBrandInputs();
+                renderBrandPresetChips();
+
                 // 배경 초기 렌더링 세팅 (기본 'image' 모드 지향)
+                loadBackgroundConfig();
                 const savedBgMode = safeStorage.getItem('bgMode') || 'image';
-                changeBackgroundMode(savedBgMode);
                 const bgSelect = document.getElementById('bgSelect');
                 if (bgSelect) bgSelect.value = savedBgMode;
+                changeBackgroundMode(savedBgMode);
 
             } catch (e) {
                 console.error("로컬 스토리지 데이터 로드 에러:", e);
@@ -710,6 +1066,7 @@
                 safeStorage.setItem('isOverlayVisible', isOverlayVisible);
                 safeStorage.setItem('soundEnabled', soundEnabled);
                 safeStorage.setItem('fontSizeScale', fontSizeScale);
+                safeStorage.setItem('titleScale', titleScale);
                 
                 const noticeInput = document.getElementById('noticeInput');
                 if (noticeInput) {
@@ -731,7 +1088,8 @@
             // 오버레이 엘리먼트 동기화
             updateOverlayUIState();
 
-            // 타이머 글자 크기 동기화
+            // 글자 크기 동기화
+            applyTitleSize();
             applyTimerSize();
 
             // 사운드 버튼 상태 토글
@@ -749,17 +1107,20 @@
 
         // 설정 서랍의 입력값 및 발표/질의응답 시간 표시 동기화
         function updateConfigTexts() {
-            const morningInput = document.getElementById('morningTargetInput');
-            const afternoonInput = document.getElementById('afternoonTargetInput');
-            const submissionInput = document.getElementById('submissionTargetInput');
-            const presMinInput = document.getElementById('presentationMinInput');
-            const qnaMinInputEl = document.getElementById('qnaMinInput');
+            // 설정 서랍의 시간 줄은 값만 보여주고, 누르면 큰 조절기가 열린다
+            function setRow(id, text) {
+                const el = document.getElementById(id);
+                if (el) el.innerText = text + ' ✎';
+            }
+            function hhmm(p) {
+                return String(p.h).padStart(2, '0') + ':' + String(p.m).padStart(2, '0');
+            }
 
-            if (morningInput) morningInput.value = `${String(presets.morning.h).padStart(2, '0')}:${String(presets.morning.m).padStart(2, '0')}`;
-            if (afternoonInput) afternoonInput.value = `${String(presets.afternoon.h).padStart(2, '0')}:${String(presets.afternoon.m).padStart(2, '0')}`;
-            if (submissionInput) submissionInput.value = `${String(presets.submission.h).padStart(2, '0')}:${String(presets.submission.m).padStart(2, '0')}`;
-            if (presMinInput) presMinInput.value = presentationDurationMin;
-            if (qnaMinInputEl) qnaMinInputEl.value = qnaDurationMin;
+            setRow('morningTargetValue', hhmm(presets.morning));
+            setRow('afternoonTargetValue', hhmm(presets.afternoon));
+            setRow('submissionTargetValue', hhmm(presets.submission));
+            setRow('presentationValue', presentationDurationMin + '분');
+            setRow('qnaValue', qnaDurationMin + '분');
 
             // 메인 화면 탭/리셋 버튼의 시간 표기 동기화
             const tabMin = document.getElementById('tabPresentationMin');
@@ -947,7 +1308,7 @@
                 
                 durationLeft = activeDurationMin() * 60; 
                 durationMax = activeDurationMin() * 60;
-                if (quickEditBtn) quickEditBtn.style.display = 'none'; 
+                if (quickEditBtn) quickEditBtn.style.display = 'inline-flex'; 
 
                 if (presentationArea) presentationArea.classList.remove('hidden');
                 
@@ -955,11 +1316,6 @@
                 resetDurationBtnUI();
                 updateConfigTexts(); // 리셋 버튼의 분 표기 동기화
             }
-
-            // 모달 내 시간 인풋 값 동기화
-            const formattedTime = `${String(targetHour).padStart(2, '0')}:${String(targetMinute).padStart(2, '0')}`;
-            const modalTimeInput = document.getElementById('modalTimeInput');
-            if (modalTimeInput) modalTimeInput.value = formattedTime;
 
             if (showFeedback) {
                 let caseLabel = "";
@@ -1109,122 +1465,253 @@
         }
 
         /* ---------------- [간편 시간 모달 로직] ---------------- */
-        function openQuickTimeModal() {
+        /* ============================================================
+           시각 / 시간 조절기 (큰 숫자 + 빠른 선택 칩)
+           ============================================================ */
+        function openTimeEditor(caseName) {
+            const key = caseName || activeCase;
+            timeEditorCase = key;
+            timeEditorMode = (key === 'presentation' || key === 'qna') ? 'duration' : 'target';
+
+            if (timeEditorMode === 'target') {
+                const p = presets[key] || { h: targetHour, m: targetMinute };
+                timeEditorH = p.h;
+                timeEditorM = p.m;
+            } else {
+                timeEditorH = 0;
+                timeEditorM = (key === 'qna') ? qnaDurationMin : presentationDurationMin;
+            }
+
+            // 설정 서랍이 열려 있으면 닫아서 화면을 가리지 않게 한다
             const drawer = document.getElementById('configDrawer');
             if (drawer && !drawer.classList.contains('translate-x-full')) {
                 drawer.classList.add('translate-x-full', 'opacity-0');
             }
 
-            if (activeMode !== 'target') {
-                return; 
-            }
-
-            const modalTitle = document.getElementById('quickModalTitle');
-            if (modalTitle) {
-                if (activeCase === 'morning') modalTitle.innerText = "오전 대회 마감 시각 설정";
-                if (activeCase === 'afternoon') modalTitle.innerText = "오후 대회 마감 시각 설정";
-                if (activeCase === 'submission') modalTitle.innerText = "결과물 제출 마감 시각 설정";
-            }
-
-            // 현재 설정 시간을 모달 팝업 내부 인풋에 대입
-            const formattedTime = `${String(targetHour).padStart(2, '0')}:${String(targetMinute).padStart(2, '0')}`;
-            const modalTimeInput = document.getElementById('modalTimeInput');
-            if (modalTimeInput) {
-                modalTimeInput.value = formattedTime;
-            }
+            buildTimeEditorChips();
+            renderTimeEditorChrome();
+            renderTimeEditor();
 
             const modal = document.getElementById('quickTimeModal');
-            if (modal) {
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                const innerDiv = modal.querySelector('div');
-                if (innerDiv) {
-                    innerDiv.classList.remove('scale-95');
-                    innerDiv.classList.add('scale-100');
-                }
-            }
+            const card = document.getElementById('quickTimeCard');
+            if (modal) modal.classList.remove('opacity-0', 'pointer-events-none');
+            if (card) { card.classList.remove('scale-95'); card.classList.add('scale-100'); }
+        }
+
+        // 메인 화면의 마감 시각 버튼도 같은 조절기를 연다
+        function openQuickTimeModal() {
+            openTimeEditor(activeCase);
         }
 
         function closeQuickTimeModal() {
             const modal = document.getElementById('quickTimeModal');
-            if (modal) {
-                modal.classList.add('opacity-0', 'pointer-events-none');
-                const innerDiv = modal.querySelector('div');
-                if (innerDiv) {
-                    innerDiv.classList.remove('scale-100');
-                    innerDiv.classList.add('scale-95');
+            const card = document.getElementById('quickTimeCard');
+            if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
+            if (card) { card.classList.remove('scale-100'); card.classList.add('scale-95'); }
+        }
+
+        function handleTimeModalBackdrop(e) {
+            if (e && e.target && e.target.id === 'quickTimeModal') closeQuickTimeModal();
+        }
+
+        function buildChips(containerId, values, labelFn, onPick) {
+            const box = document.getElementById(containerId);
+            if (!box) return;
+            box.innerHTML = '';
+            values.forEach(function (v) {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'chip';
+                b.innerText = labelFn(v);
+                b.setAttribute('data-val', String(v));
+                b.onclick = function () { onPick(v); };
+                box.appendChild(b);
+            });
+        }
+
+        function fromNowLabel(minutes) {
+            if (minutes < 60) return '+' + minutes + '분';
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            return '+' + h + '시간' + (m ? ' ' + m + '분' : '');
+        }
+
+        function buildTimeEditorChips() {
+            if (timeEditorMode === 'target') {
+                buildChips('minuteChips', [0, 10, 15, 20, 30, 40, 45, 50],
+                    function (v) { return String(v).padStart(2, '0'); },
+                    function (v) { setTimeEditorMinute(v); });
+
+                buildChips('timePresetChips', ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
+                    function (v) { return v; },
+                    function (v) { setTimeEditorPreset(v); });
+
+                buildChips('fromNowChips', [10, 30, 60, 90, 120],
+                    fromNowLabel,
+                    function (v) { setTimeEditorFromNow(v); });
+            } else {
+                buildChips('durationChips', [1, 2, 3, 5, 7, 10, 15, 20],
+                    function (v) { return v + '분'; },
+                    function (v) { timeEditorM = v; renderTimeEditor(); playBeep(784, 0.08, 'sine'); });
+            }
+        }
+
+        function setShown(id, shown) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('hidden', !shown);
+        }
+
+        function renderTimeEditorChrome() {
+            const title = document.getElementById('quickModalTitle');
+            if (title) {
+                // 아이콘은 두고 글자만 교체
+                const labelNode = title.childNodes[title.childNodes.length - 1];
+                const text = TIME_CASE_LABEL[timeEditorCase] || '시간 설정';
+                if (labelNode && labelNode.nodeType === 3) labelNode.nodeValue = '\n                    ' + text + '\n                ';
+            }
+
+            const isTarget = timeEditorMode === 'target';
+            setShown('hourStepper', isTarget);
+            setShown('timeColon', isTarget);
+            setShown('minuteQuickRow', isTarget);
+            setShown('hourPresetRow', isTarget);
+            setShown('fromNowRow', isTarget);
+            setShown('durationQuickRow', !isTarget);
+
+            const minLabel = document.getElementById('timeMinuteLabel');
+            if (minLabel) minLabel.innerText = isTarget ? '분' : '분 (제한시간)';
+
+            const minInput = document.getElementById('timeMinuteInput');
+            if (minInput) minInput.setAttribute('maxlength', isTarget ? '2' : '3');
+        }
+
+        function markActiveChip(containerId, value) {
+            const box = document.getElementById(containerId);
+            if (!box) return;
+            const target = String(value);
+            const chips = box.querySelectorAll('button');
+            for (let i = 0; i < chips.length; i++) {
+                chips[i].classList.toggle('chip-on', chips[i].getAttribute('data-val') === target);
+            }
+        }
+
+        function renderTimeEditor() {
+            const hEl = document.getElementById('timeHourInput');
+            const mEl = document.getElementById('timeMinuteInput');
+            // 타이핑 중인 칸은 건드리지 않는다
+            if (hEl && document.activeElement !== hEl) hEl.value = String(timeEditorH).padStart(2, '0');
+            if (mEl && document.activeElement !== mEl) mEl.value = String(timeEditorM).padStart(2, '0');
+
+            const preview = document.getElementById('timePreviewText');
+            if (preview) {
+                if (timeEditorMode === 'target') {
+                    const now = new Date();
+                    const t = new Date();
+                    t.setHours(timeEditorH, timeEditorM, 0, 0);
+                    const diffMin = Math.round((t - now) / 60000);
+                    if (diffMin > 0) {
+                        const h = Math.floor(diffMin / 60);
+                        const m = diffMin % 60;
+                        preview.innerHTML = '지금부터 <b class="text-cyan-300">' + (h ? h + '시간 ' : '') + m + '분</b> 뒤에 마감됩니다.';
+                    } else {
+                        preview.innerHTML = '<span class="text-rose-300 font-bold">이미 지난 시각입니다.</span> 저장하면 타이머가 00:00:00으로 표시됩니다.';
+                    }
+                } else {
+                    preview.innerHTML = '시작하면 <b class="text-cyan-300">' + timeEditorM + '분</b>부터 줄어듭니다.';
                 }
             }
+
+            markActiveChip('minuteChips', timeEditorM);
+            markActiveChip('timePresetChips', String(timeEditorH).padStart(2, '0') + ':' + String(timeEditorM).padStart(2, '0'));
+            markActiveChip('durationChips', timeEditorM);
         }
 
-        // 가감 조정 버튼 (-30분, -10분, +10분, +30분)
-        function adjustModalTime(minutesToChange) {
-            const timeInput = document.getElementById('modalTimeInput');
-            if (!timeInput) return;
-            let val = timeInput.value;
-            
-            if (!val) {
-                val = `${String(targetHour).padStart(2, '0')}:${String(targetMinute).padStart(2, '0')}`;
+        function stepTimeEditor(part, delta) {
+            if (timeEditorMode === 'duration') {
+                timeEditorM = Math.max(1, Math.min(120, timeEditorM + delta));
+            } else if (part === 'h') {
+                timeEditorH = (timeEditorH + delta + 24) % 24;
+            } else {
+                // 분이 한 바퀴 돌면 시도 같이 넘어가도록
+                let total = timeEditorH * 60 + timeEditorM + delta;
+                total = (total + 1440) % 1440;
+                timeEditorH = Math.floor(total / 60);
+                timeEditorM = total % 60;
             }
-
-            let [h, m] = val.split(':').map(Number);
-            let totalMinutes = (h * 60) + m + minutesToChange;
-            
-            if (totalMinutes < 0) totalMinutes += 1440;
-            totalMinutes = totalMinutes % 1440;
-
-            const newH = Math.floor(totalMinutes / 60);
-            const newM = totalMinutes % 60;
-
-            timeInput.value = `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
-            playBeep(650, 0.08, 'sine'); 
+            renderTimeEditor();
+            playBeep(650, 0.06, 'sine');
         }
 
-        function setModalPreset(timeStr) {
-            const modalTimeInput = document.getElementById('modalTimeInput');
-            if (modalTimeInput) {
-                modalTimeInput.value = timeStr;
+        function onTimeInputEdit(part, el) {
+            const maxLen = (timeEditorMode === 'duration') ? 3 : 2;
+            const digits = (el.value || '').replace(/[^0-9]/g, '').slice(0, maxLen);
+            el.value = digits;
+            if (digits === '') return;
+
+            const v = parseInt(digits);
+            if (isNaN(v)) return;
+
+            if (timeEditorMode === 'duration') {
+                timeEditorM = Math.max(1, Math.min(120, v));
+            } else if (part === 'h') {
+                timeEditorH = Math.max(0, Math.min(23, v));
+            } else {
+                timeEditorM = Math.max(0, Math.min(59, v));
             }
-            playBeep(784, 0.1, 'sine');
+            renderTimeEditor();
         }
 
-        // 모달 시간 변경 후 완벽 저장 처리 (모든 브라우저 호환)
-        function saveModalTime() {
-            const modalTimeInput = document.getElementById('modalTimeInput');
-            if (!modalTimeInput) return;
-            const val = modalTimeInput.value;
-            
-            if (!val) {
-                showToast("⚠️ 올바른 마감 시간을 마저 지정해 주세요. (예: 15:00)");
-                playBeep(330, 0.3, 'sawtooth');
-                return;
+        function setTimeEditorMinute(m) {
+            timeEditorM = m;
+            renderTimeEditor();
+            playBeep(700, 0.07, 'sine');
+        }
+
+        function setTimeEditorPreset(timeStr) {
+            const parts = String(timeStr).split(':');
+            timeEditorH = parseInt(parts[0]);
+            timeEditorM = parseInt(parts[1]);
+            renderTimeEditor();
+            playBeep(784, 0.08, 'sine');
+        }
+
+        function setTimeEditorFromNow(minutes) {
+            const t = new Date();
+            t.setMinutes(t.getMinutes() + minutes);
+            timeEditorH = t.getHours();
+            timeEditorM = t.getMinutes();
+            renderTimeEditor();
+            playBeep(880, 0.08, 'sine');
+        }
+
+        function commitTimeEditor() {
+            if (timeEditorMode === 'target') {
+                // 고친 시간이 바로 화면에 보이도록 해당 탭으로 옮긴 뒤 저장
+                if (activeCase !== timeEditorCase) switchPresetCase(timeEditorCase);
+                const val = String(timeEditorH).padStart(2, '0') + ':' + String(timeEditorM).padStart(2, '0');
+                updatePresetFromDrawer(timeEditorCase, val);
+            } else {
+                if (activeCase !== timeEditorCase) switchPresetCase(timeEditorCase);
+                if (timeEditorCase === 'qna') updateQnaDuration(timeEditorM);
+                else updatePresentationDuration(timeEditorM);
             }
-
-            const [h, m] = val.split(':');
-            const parsedHour = parseInt(h);
-            const parsedMinute = parseInt(m);
-
-            if (activeCase === 'morning') {
-                presets.morning.h = parsedHour;
-                presets.morning.m = parsedMinute;
-            } else if (activeCase === 'afternoon') {
-                presets.afternoon.h = parsedHour;
-                presets.afternoon.m = parsedMinute;
-            } else if (activeCase === 'submission') {
-                presets.submission.h = parsedHour;
-                presets.submission.m = parsedMinute;
-            }
-
-            targetHour = parsedHour;
-            targetMinute = parsedMinute;
-            setupStartTime = new Date(); 
-
-            updateConfigTexts();
-
-            saveSettings();
-            updateMasterLoop();
             closeQuickTimeModal();
-            showToast("🎯 마감 시각이 " + targetHour + "시 " + targetMinute + "분으로 새롭게 설정되었습니다!");
-            playBeep(1046.50, 0.25, 'sine'); 
+        }
+
+        function handleTimeEditorKey(e) {
+            const modal = document.getElementById('quickTimeModal');
+            if (!modal || modal.classList.contains('pointer-events-none')) return;
+
+            if (e.key === 'Escape') {
+                closeQuickTimeModal();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                commitTimeEditor();
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                const onHour = document.activeElement && document.activeElement.id === 'timeHourInput';
+                stepTimeEditor(onHour ? 'h' : 'm', e.key === 'ArrowUp' ? 1 : -1);
+            }
         }
         /* ------------------------------------------------------------- */
 
@@ -1357,6 +1844,344 @@
                 }
             }
             safeStorage.setItem('bgMode', mode);
+            applyBgDim(mode);
+        }
+
+        /* ============================================================
+           화면 문구(브랜딩) 편집
+           ============================================================ */
+        function loadBrandConfig() {
+            const saved = safeStorage.getItem('brandConfig');
+            if (!saved) return;
+            try {
+                const parsed = JSON.parse(saved);
+                Object.keys(BRAND_DEFAULTS).forEach(function (k) {
+                    if (typeof parsed[k] === 'string') brand[k] = parsed[k];
+                });
+            } catch (e) {
+                // 저장값이 깨졌으면 기본값 그대로 사용
+            }
+        }
+
+        function saveBrandConfig() {
+            safeStorage.setItem('brandConfig', JSON.stringify(brand));
+        }
+
+        /* 값이 비면 화면에서 감추고, 편집 중이면 자리 안내 글씨로 위치를 보여준다 */
+        function setBrandText(key) {
+            const target = BRAND_TARGETS[key];
+            if (!target) return;
+            const el = document.getElementById(target.id);
+            if (!el) return;
+
+            const text = (brand[key] || '').trim();
+            const focused = (brandFocusKey === key);
+
+            el.classList.remove('brand-spot', 'brand-ghost');
+
+            if (text) {
+                el.innerText = text;
+                el.style.display = '';
+            } else if (focused) {
+                el.innerText = target.ghost;
+                el.style.display = '';
+                el.classList.add('brand-ghost');
+            } else {
+                el.innerText = '';
+                el.style.display = 'none';
+            }
+
+            if (focused) el.classList.add('brand-spot');
+        }
+
+        function applyBrand() {
+            Object.keys(BRAND_TARGETS).forEach(setBrandText);
+
+            // 편집 중인 칸은 비어 있어도 자리를 보여줘야 하므로 '있는 것'으로 친다
+            function shown(key) {
+                return (brand[key] || '').trim() !== '' || brandFocusKey === key;
+            }
+            const hasOrgEn = shown('orgEn');
+            const hasOrgKo = shown('orgKo');
+            const hasBadge = shown('badge');
+
+            // 라벨을 비우면 위쪽 아이콘도 같이 숨긴다
+            const eyebrowWrap = document.getElementById('headerEyebrowWrap');
+            if (eyebrowWrap) eyebrowWrap.style.display = shown('eyebrow') ? '' : 'none';
+
+            const divider = document.getElementById('footerOrgDivider');
+            if (divider) divider.style.display = (hasOrgEn && hasOrgKo) ? '' : 'none';
+
+            const orgWrap = document.getElementById('footerOrgWrap');
+            if (orgWrap) orgWrap.style.display = (hasOrgEn || hasOrgKo) ? '' : 'none';
+
+            const footerRow = document.getElementById('footerRow');
+            if (footerRow) footerRow.style.display = (hasOrgEn || hasOrgKo || hasBadge) ? '' : 'none';
+
+            document.title = (brand.title || '').trim() || BRAND_DEFAULTS.title;
+        }
+
+        /* 입력칸을 누르면 화면의 해당 위치를 반짝이는 테두리로 알려준다 */
+        function focusBrandTarget(key) {
+            brandFocusKey = key;
+            if (key === 'wmTop' || key === 'wmBottom') previewVectorLayer(true);
+            applyBrand();
+        }
+
+        function blurBrandTarget(key) {
+            if (brandFocusKey !== key) return;
+            brandFocusKey = null;
+            if (key === 'wmTop' || key === 'wmBottom') previewVectorLayer(false);
+            applyBrand();
+        }
+
+        // 워터마크는 벡터 배경에서만 보이므로, 편집하는 동안에는 사진 배경에서도 비쳐 보이게 한다
+        function previewVectorLayer(on) {
+            const vec = document.getElementById('backgroundVectorBg');
+            const sel = document.getElementById('bgSelect');
+            const mode = sel ? sel.value : 'image';
+            if (!vec) return;
+            if (on && mode === 'image') vec.style.opacity = '0.6';
+            else changeBackgroundMode(mode);
+        }
+
+        /* 문구 세트를 한 번에 바꿨을 때 바뀐 자리를 잠깐 반짝여 준다 */
+        function flashBrandTargets() {
+            Object.keys(BRAND_TARGETS).forEach(function (key) {
+                const el = document.getElementById(BRAND_TARGETS[key].id);
+                if (!el || el.style.display === 'none') return;
+                el.classList.remove('brand-flash');
+                void el.offsetWidth; // 애니메이션 재시작
+                el.classList.add('brand-flash');
+                setTimeout(function () { el.classList.remove('brand-flash'); }, 950);
+            });
+        }
+
+        function renderBrandPresetChips() {
+            const box = document.getElementById('brandPresetChips');
+            if (!box) return;
+            box.innerHTML = '';
+            BRAND_PRESETS.forEach(function (preset) {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'preset-chip';
+                b.innerHTML = '<span class="pc-name"></span><span class="pc-desc"></span>';
+                b.querySelector('.pc-name').innerText = preset.name;
+                b.querySelector('.pc-desc').innerText = preset.desc;
+                b.onclick = function () { applyBrandPreset(preset.id); };
+                box.appendChild(b);
+            });
+        }
+
+        function applyBrandPreset(id) {
+            let preset = null;
+            for (let i = 0; i < BRAND_PRESETS.length; i++) {
+                if (BRAND_PRESETS[i].id === id) { preset = BRAND_PRESETS[i]; break; }
+            }
+            if (!preset) return;
+
+            Object.keys(BRAND_DEFAULTS).forEach(function (k) {
+                brand[k] = (typeof preset.data[k] === 'string') ? preset.data[k] : '';
+            });
+
+            applyBrand();
+            syncBrandInputs();
+            saveBrandConfig();
+
+            if (typeof preset.data.notice === 'string') setNoticeText(preset.data.notice);
+
+            flashBrandTargets();
+            showToast('“' + preset.name + '” 문구를 넣었습니다. 필요한 곳만 고쳐 쓰세요.');
+            playBeep(784, 0.12, 'sine');
+        }
+
+        // 공지 전광판 문구를 코드에서 직접 바꿀 때 쓰는 공통 처리
+        function setNoticeText(text) {
+            const marquee = document.getElementById('noticeMarquee');
+            const input = document.getElementById('noticeInput');
+            if (marquee) marquee.innerText = text;
+            if (input) input.value = text;
+            safeStorage.setItem('noticeText', text);
+        }
+
+        const BRAND_INPUT_IDS = {
+            eyebrow: 'brandEyebrowInput',
+            title: 'brandTitleInput',
+            wmTop: 'brandWmTopInput',
+            wmBottom: 'brandWmBottomInput',
+            orgEn: 'brandOrgEnInput',
+            orgKo: 'brandOrgKoInput',
+            badge: 'brandBadgeInput',
+            subline: 'brandSublineInput'
+        };
+
+        function syncBrandInputs() {
+            Object.keys(BRAND_INPUT_IDS).forEach(function (k) {
+                const el = document.getElementById(BRAND_INPUT_IDS[k]);
+                if (el) el.value = brand[k];
+            });
+        }
+
+        function updateBrandField(key, value) {
+            if (!(key in BRAND_DEFAULTS)) return;
+            brand[key] = value;
+            applyBrand();
+            saveBrandConfig();
+        }
+
+        function resetBrandToDefault() {
+            brand = Object.assign({}, BRAND_DEFAULTS);
+            applyBrand();
+            syncBrandInputs();
+            saveBrandConfig();
+            flashBrandTargets();
+            showToast('화면 문구를 기본값으로 되돌렸습니다.');
+        }
+
+        /* ============================================================
+           배경 이미지 삽입 / 덮개 농도
+           ============================================================ */
+        function loadBackgroundConfig() {
+            const savedSrc = safeStorage.getItem('bgImageSrc');
+            if (savedSrc) {
+                bgImageSrc = savedSrc;
+                bgImageLabel = safeStorage.getItem('bgImageLabel') || '직접 넣은 이미지';
+            }
+            const savedDim = safeStorage.getItem('bgDim');
+            if (savedDim !== null) {
+                const v = parseInt(savedDim);
+                if (!isNaN(v) && v >= 0 && v <= 85) bgDim = v;
+            }
+            applyBackgroundImage();
+        }
+
+        function applyBackgroundImage() {
+            const imgBg = document.getElementById('backgroundImageBg');
+            if (imgBg) imgBg.style.backgroundImage = "url('" + bgImageSrc + "')";
+            const nameEl = document.getElementById('bgFileName');
+            if (nameEl) nameEl.innerText = bgImageLabel;
+        }
+
+        function applyBgDim(forcedMode) {
+            const bgSelect = document.getElementById('bgSelect');
+            const mode = forcedMode || (bgSelect ? bgSelect.value : 'image');
+            const dimEl = document.getElementById('bgDimLayer');
+            // 덮개는 사진 배경일 때만 의미가 있으므로 벡터 배경에서는 끈다
+            if (dimEl) dimEl.style.opacity = (mode === 'image') ? (bgDim / 100) : 0;
+
+            const valEl = document.getElementById('bgDimValue');
+            if (valEl) valEl.innerText = bgDim + '%';
+            const range = document.getElementById('bgDimRange');
+            if (range && String(range.value) !== String(bgDim)) range.value = bgDim;
+        }
+
+        function updateBgDim(value) {
+            const v = parseInt(value);
+            bgDim = isNaN(v) ? 0 : Math.max(0, Math.min(85, v));
+            safeStorage.setItem('bgDim', bgDim);
+            applyBgDim();
+        }
+
+        function openBgFilePicker() {
+            const input = document.getElementById('bgFileInput');
+            if (input) input.click();
+        }
+
+        function handleBgUpload(event) {
+            const input = event.target;
+            const file = input.files && input.files[0];
+            if (!file) return;
+            if (file.type.indexOf('image/') !== 0) {
+                showToast('이미지 파일만 넣을 수 있습니다.');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                const raw = ev.target.result;
+                const img = new Image();
+                img.onload = function () {
+                    let out = raw;
+                    try {
+                        // 프로젝터 해상도(가로 1920)에 맞춰 줄여서 저장 → 브라우저 저장 용량 초과 방지
+                        const MAX_W = 1920;
+                        let w = img.naturalWidth || img.width;
+                        let h = img.naturalHeight || img.height;
+                        if (w > MAX_W) {
+                            h = Math.round(h * MAX_W / w);
+                            w = MAX_W;
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        out = canvas.toDataURL('image/jpeg', 0.85);
+                    } catch (e) {
+                        out = raw;
+                    }
+                    setCustomBackground(out, file.name);
+                };
+                img.onerror = function () { setCustomBackground(raw, file.name); };
+                img.src = raw;
+            };
+            reader.onerror = function () { showToast('이미지를 읽지 못했습니다.'); };
+            reader.readAsDataURL(file);
+            input.value = ''; // 같은 파일을 다시 골라도 동작하도록 초기화
+        }
+
+        function setCustomBackground(dataUrl, fileName) {
+            bgImageSrc = dataUrl;
+            bgImageLabel = fileName || '직접 넣은 이미지';
+            applyBackgroundImage();
+
+            // 사진을 넣으면 자동으로 이미지 배경 모드로 전환
+            const bgSelect = document.getElementById('bgSelect');
+            if (bgSelect) bgSelect.value = 'image';
+            changeBackgroundMode('image');
+
+            safeStorage.setItem('bgImageSrc', bgImageSrc);
+            safeStorage.setItem('bgImageLabel', bgImageLabel);
+
+            if (safeStorage.getItem('bgImageSrc') === bgImageSrc) {
+                showToast('배경 이미지를 넣었습니다.');
+            } else {
+                showToast('배경은 적용됐지만 용량이 커서 저장되지 않았습니다. 새로고침하면 사라집니다.');
+            }
+            playBeep(784, 0.12, 'sine');
+        }
+
+        function resetBackgroundImage() {
+            bgImageSrc = DEFAULT_BG_SRC;
+            bgImageLabel = DEFAULT_BG_LABEL;
+            safeStorage.setItem('bgImageSrc', '');
+            safeStorage.setItem('bgImageLabel', '');
+            applyBackgroundImage();
+            showToast('기본 배경 이미지로 되돌렸습니다.');
+        }
+
+        /* 상단 제목 크기: 화면 폭 비례값에 배율을 곱해 조절 */
+        function applyTitleSize() {
+            document.documentElement.style.setProperty('--title-scale', (titleScale / 100).toFixed(2));
+            const label = document.getElementById('titleSizePercentage');
+            if (label) label.innerText = titleScale + '%';
+        }
+
+        function adjustTitleSize(direction) {
+            titleScale += direction * 10;
+            if (titleScale < 60) titleScale = 60;
+            if (titleScale > 200) titleScale = 200;
+            applyTitleSize();
+            saveSettings();
+
+            // 어디가 바뀌었는지 보이도록 제목을 잠깐 반짝
+            const el = document.getElementById('headerTitle');
+            if (el && el.style.display !== 'none') {
+                el.classList.remove('brand-flash');
+                void el.offsetWidth;
+                el.classList.add('brand-flash');
+                setTimeout(function () { el.classList.remove('brand-flash'); }, 950);
+            }
         }
 
         // 글자 크기 가감 및 갱신 기능
@@ -1537,19 +2362,7 @@
         const ORDER_DEFAULTS_VERSION = 'school_teams_11_v1';
 
         function defaultTeams() {
-            return [
-                '수도공고 1팀',
-                '단대소고 1팀',
-                '단대소고 2팀',
-                '단대소고 3팀',
-                '단대소고 4팀',
-                '로봇고 1팀',
-                '로봇고 2팀',
-                '로봇고 3팀',
-                '로봇고 4팀',
-                '대진디고 1팀',
-                '대진디고 2팀'
-            ];
+            return ['1팀', '2팀', '3팀', '4팀', '5팀', '6팀', '7팀', '8팀'];
         }
 
         function loadOrderNames() {
@@ -1578,7 +2391,7 @@
             orderNames = defaultTeams();
             saveOrderNames();
             renderOrderNameChips();
-            showToast('시트 기준 기본 팀 명단을 채웠습니다.');
+            showToast('기본 팀 명단을 채웠습니다.');
             playBeep(784, 0.12, 'sine');
         }
 
@@ -1843,6 +2656,9 @@
             // 타이머 업데이트 주기 작동
             setInterval(updateMasterLoop, 1000);
             updateMasterLoop(); // 즉시 갱신
+
+            // 시각 조절기 단축키 (↑↓ 조절 · Enter 저장 · Esc 취소)
+            document.addEventListener('keydown', handleTimeEditorKey);
 
             // 타이머 글자가 화면을 벗어나지 않고 항상 정중앙에 들어오도록 크기 재보정
             window.addEventListener('resize', applyTimerSize);
