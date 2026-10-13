@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>행사 진행 타이머</title>
+    <title>AI 문제 해결 해커톤</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts & Pretendard -->
@@ -244,8 +244,8 @@
         
         <!-- 배경 워터마크 글자 (설정 패널에서 위/아래 단어를 직접 입력) -->
         <div class="absolute inset-0 flex flex-col justify-between pt-[8vh] pb-[20vh] pointer-events-none select-none overflow-hidden font-black text-center uppercase leading-none tracking-[-0.04em] italic" style="font-family: 'Pretendard Variable', sans-serif;">
-            <div id="watermarkTop" class="text-[25vw] text-white/[0.05] leading-none translate-x-[4vw] -translate-y-[2vh] mix-blend-overlay select-none">EVENT</div>
-            <div id="watermarkBottom" class="text-[25vw] text-white/[0.05] leading-none -translate-x-[4vw] -translate-y-[2vh] mix-blend-overlay select-none">TIMER</div>
+            <div id="watermarkTop" class="text-[25vw] text-white/[0.05] leading-none translate-x-[4vw] -translate-y-[2vh] mix-blend-overlay select-none">HACKA</div>
+            <div id="watermarkBottom" class="text-[25vw] text-white/[0.05] leading-none -translate-x-[4vw] -translate-y-[2vh] mix-blend-overlay select-none">THON</div>
         </div>
     </div>
 
@@ -342,7 +342,7 @@
                 </div>
                 <div class="relative w-full overflow-hidden">
                     <div id="noticeMarquee" class="marquee-content text-violet-100 text-xs md:text-sm font-semibold tracking-wide">
-                        🎉 행사에 참여하신 여러분을 환영합니다!
+                        💻 AI 문제 해결 해커톤에 참여하신 여러분을 환영합니다!
                     </div>
                 </div>
             </div>
@@ -492,7 +492,7 @@
                     </div>
                     <label class="block">
                         <span class="text-[11px] text-slate-500 font-medium">하단 배지 문구</span>
-                        <input id="brandBadgeInput" type="text" oninput="updateBrandField('badge', this.value)" onfocus="focusBrandTarget('badge')" onblur="blurBrandTarget('badge')" placeholder="예: TMD EDUCATION GROUP" class="w-full mt-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors">
+                        <input id="brandBadgeInput" type="text" oninput="updateBrandField('badge', this.value)" onfocus="focusBrandTarget('badge')" onblur="blurBrandTarget('badge')" placeholder="예: DORO" class="w-full mt-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors">
                     </label>
                     <label class="block">
                         <span class="text-[11px] text-slate-500 font-medium">하단 영문 한 줄</span>
@@ -813,26 +813,29 @@
            이 파일 하나로 여러 행사에 돌려쓰기 위해, 눈에 보이는 문구는 전부 설정에서 바꿉니다. */
         const BRAND_DEFAULTS = {
             eyebrow: 'LIVE CONTROL',
-            title: '행사 진행 타이머',
-            wmTop: 'EVENT',
-            wmBottom: 'TIMER',
+            title: 'AI 문제 해결 해커톤',
+            wmTop: 'HACKA',
+            wmBottom: 'THON',
             orgEn: '',
             orgKo: '',
-            badge: '',
-            subline: ''
+            badge: 'DORO',
+            subline: 'AI Problem-Solving Hackathon'
         };
+        const NOTICE_DEFAULT = '💻 AI 문제 해결 해커톤에 참여하신 여러분을 환영합니다!';
+        /* 기본 문구를 바꾸면 이 값을 올린다. 예전 브라우저에 남은 저장값을 새 기본값으로 덮어쓰기 위함 */
+        const BRAND_VERSION = '2026_v2_ai_hackathon_doro';
         /* 준비된 문구 세트. 고른 뒤 각 칸에서 고쳐 쓰는 것을 전제로 한다. */
         const BRAND_PRESETS = [
             {
                 id: 'gangnam',
                 name: '강남구 AI 해커톤',
-                desc: '기존 TMD 버전 문구',
+                desc: '지역명을 넣은 구성',
                 data: {
                     eyebrow: 'LIVE CONTROL',
                     title: '2026 강남구 AI 문제 해결 해커톤',
                     wmTop: 'HACKA', wmBottom: 'THON',
                     orgEn: 'GANGNAM', orgKo: '강남구',
-                    badge: 'TMD EDUCATION GROUP',
+                    badge: 'DORO',
                     subline: '2026 Gangnam-gu AI Problem-Solving Hackathon',
                     notice: '💻 2026 강남구 AI 문제해결 해커톤에 참여하신 여러분을 환영합니다!'
                 }
@@ -846,7 +849,7 @@
                     title: '2026 금천구 AI 문제 해결 해커톤',
                     wmTop: 'HACKA', wmBottom: 'THON',
                     orgEn: 'GEUMCHEON', orgKo: '금천구',
-                    badge: 'TMD EDUCATION GROUP',
+                    badge: 'DORO',
                     subline: '2026 Geumcheon-gu AI Problem-Solving Hackathon',
                     notice: '💻 2026 금천구 AI 문제해결 해커톤에 참여하신 여러분을 환영합니다!'
                 }
@@ -860,7 +863,7 @@
                     title: 'AI 문제 해결 해커톤',
                     wmTop: 'HACKA', wmBottom: 'THON',
                     orgEn: '', orgKo: '',
-                    badge: 'TMD EDUCATION GROUP',
+                    badge: 'DORO',
                     subline: 'AI Problem-Solving Hackathon',
                     notice: '💻 해커톤에 참여하신 여러분을 환영합니다!'
                 }
@@ -874,7 +877,7 @@
                     title: '2026 학생 발표 경진대회',
                     wmTop: 'CON', wmBottom: 'TEST',
                     orgEn: '', orgKo: '',
-                    badge: 'TMD EDUCATION GROUP',
+                    badge: 'DORO',
                     subline: '2026 Student Presentation Contest',
                     notice: '🎤 발표 순서와 남은 시간을 확인해 주세요!'
                 }
@@ -888,7 +891,7 @@
                     title: '2026 AI 진로 캠프',
                     wmTop: 'AI', wmBottom: 'CAMP',
                     orgEn: '', orgKo: '',
-                    badge: 'TMD EDUCATION GROUP',
+                    badge: 'DORO',
                     subline: '2026 AI Career Camp',
                     notice: '🙌 오늘 일정과 남은 시간을 안내합니다.'
                 }
@@ -1023,6 +1026,12 @@
                     if (!isNaN(parsedTitle) && parsedTitle >= 60 && parsedTitle <= 200) titleScale = parsedTitle;
                 }
 
+                // 화면 문구(브랜딩) 복원 — 공지보다 먼저. 기본 문구가 바뀐 경우 여기서 공지 저장값도 초기화된다
+                loadBrandConfig();
+                applyBrand();
+                syncBrandInputs();
+                renderBrandPresetChips();
+
                 const savedNotice = safeStorage.getItem('noticeText');
                 const noticeMarquee = document.getElementById('noticeMarquee');
                 const noticeInput = document.getElementById('noticeInput');
@@ -1033,12 +1042,6 @@
                     // 저장된 문구가 없으면 화면에 떠 있는 기본 문구를 입력칸에도 채워 둔다
                     noticeInput.value = noticeMarquee.innerText.trim();
                 }
-
-                // 화면 문구(브랜딩) 복원
-                loadBrandConfig();
-                applyBrand();
-                syncBrandInputs();
-                renderBrandPresetChips();
 
                 // 배경 초기 렌더링 세팅 (기본 'image' 모드 지향)
                 loadBackgroundConfig();
@@ -1851,6 +1854,13 @@
            화면 문구(브랜딩) 편집
            ============================================================ */
         function loadBrandConfig() {
+            if (safeStorage.getItem('brandVersion') !== BRAND_VERSION) {
+                // 기본 문구가 바뀐 뒤 처음 열면 예전 저장 문구를 버리고 새 기본값으로 시작
+                safeStorage.setItem('brandVersion', BRAND_VERSION);
+                safeStorage.setItem('brandConfig', JSON.stringify(brand));
+                safeStorage.setItem('noticeText', NOTICE_DEFAULT);
+                return;
+            }
             const saved = safeStorage.getItem('brandConfig');
             if (!saved) return;
             try {
@@ -2034,6 +2044,7 @@
             applyBrand();
             syncBrandInputs();
             saveBrandConfig();
+            setNoticeText(NOTICE_DEFAULT);
             flashBrandTargets();
             showToast('화면 문구를 기본값으로 되돌렸습니다.');
         }
